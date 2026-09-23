@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 50px; }
+    .ct { display: flex; gap: 10px; }
+    button { padding: 10px 20px; cursor: pointer; }
+    #i { display: none; }
+    select { height: 2em; }
+  </style> 
+</head>
+<body>
+  <div class="ct">
+    <input type="file" id="i" accept=".html,.htm">
+    <button onclick="i.click()">Upload HTML File</button>
+  </div>
+  
+  <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+    <p id="d" style="flex: 1; text-align: right;">Selected: none</p>
+    <hr style="height: 2em;">
+    <div style="flex: 1; display: flex; align-items: center; gap: 10px;">         <p>Open in</p> 
+      <select id="opT"> 
+        <option value="a">About:blank</option> 
+        <option value="b">Blob</option> 
+        <option value="c">Current window</option> 
+        <option value="z">No popup (link)</option>
+      </select> 
+      <select id="copT">
+        <option value="a">New Tab</option>
+        <option value="b">Window</option>
+      </select>
+    </div>
+  </div>
+
+  <button id="r" disabled>Open</button>
+  <a id="nopop" target="_blank" rel="noopener noreferrer" style="display:none">Link</a>
+  <script>
+    let c = "";
+    let wpl = "";
+    i.onchange = e => {
+      const f = e.target.files[0];
+      if (f) {
+        const b = new FileReader();
+        b.onload = x => {
+          c = x.target.result;
+          d.textContent = `Selected: ${f.name}`;
+          r.disabled = 0;
+        };
+        b.readAsText(f);
+      }
+    };
+  opT.onchange = e => {
+    if(opT.value==='c')copT.style.display="none";
+    else copT.style.display="block";
+    if(opT.value!=='z'){
+      nopop.style.display="none";
+      r.style.display="block";
+    }else copT.style.display="none";
+  }
+  copT.onchange = e => { wpl=(copT.value==='b')?"width=800,height=600,scrollbars=yes,resizable=yes":""; }
+  r.onclick = () => {
+    
+    if (c) {
+      switch(opT.value){
+        case 'a':
+          const ab = window.open("about:blank", "_blank", wpl);
+          if(ab){
+            ab.document.write(c);
+            ab.document.close();
+          }else alert("Pop-up blocked!");
+          break;
+        case 'c':
+          document.open();
+          document.write(c);
+          document.close();
+          break;
+        default: 
+          const blob = new Blob([c], { type: 'text/html' });
+          const blobUrl = URL.createObjectURL(blob);
+          if(opT.value=='b'){
+            const w = window.open(blobUrl, "_blank", wpl);
+            if (!w) alert("Pop-up blocked!");
+          }else{
+            nopop.href=blobUrl;
+            nopop.style.display="block";
+            r.style.display="none";
+          }
+      }
+    }
+  };
+
+  </script>
+</body>
+</html>
