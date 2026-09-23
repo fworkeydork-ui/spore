@@ -1,5 +1,8 @@
 
-let s=document.currentScript,P=s.dataset.p;
+let s=document.currentScript||[...document.querySelectorAll("script[data-p]")].pop();
+if(!document.body)document.documentElement.appendChild(document.createElement("body"));
+let P=s?s.dataset.p:"";
+if(!P){document.body.innerHTML="no data-p on the script tag";throw Error("no data-p")}
 let c="",st=document.createElement("b");
 st.textContent="loading…";
 let o=document.createElement("select");
@@ -11,13 +14,14 @@ r.textContent="Open";r.disabled=true;
 let l=document.createElement("a");
 l.target="_blank";l.rel="noopener";l.style.display="none";l.textContent="link";
 document.body.append(o,w,r,l,st);
+const rf=async u=>{for(let i=0;i<8;i++){try{const x=await fetch(u,{cache:"no-store"});if(x.ok)return await x.text()}catch(e){}st.textContent="waiting for cdn "+(i+1)+"…";await new Promise(y=>setTimeout(y,4000))}throw Error("404 "+u)};
 (async()=>{try{
  const B="https://cdn.jsdelivr.net/gh/"+P;
- const m=await(await fetch(B+"m.json")).text();
+ const m=await rf(B+"m.json");
  const n=+m;
  if(n>0){
   let s2="";
-  for(let i=0;i<n;i++){st.textContent="part "+(i+1)+"/"+n;const x=await fetch(B+"s."+i+".txt");if(!x.ok)throw Error(x.status);s2+=await x.text()}
+  for(let i=0;i<n;i++){st.textContent="part "+(i+1)+"/"+n;s2+=await rf(B+"s."+i+".txt")}
   const b=atob(s2),u=new Uint8Array(b.length);
   for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
   let out;
@@ -25,12 +29,10 @@ document.body.append(o,w,r,l,st);
   else out=u.subarray(1);
   c=new TextDecoder().decode(out);
  }else{
-  const x=await fetch(B+"x.html");
-  if(!x.ok)throw Error(x.status);
-  c=await x.text();
+  c=await rf(B+"x.html");
  }
  r.disabled=false;st.textContent="ready";
-}catch(e){st.textContent="load failed "+e.message}})();
+}catch(e){st.textContent="load failed: "+e.message}})();
 r.onclick=()=>{
  if(!c)return;
  const f=(w.value=="b")?"width=800,height=600":"";
